@@ -15,6 +15,12 @@ A powerful, full-stack web application designed to perform **comprehensive secur
 
 ---
 
+## 🏗️ Architecture Diagram
+
+![Architecture Diagram](WebScan/Architecture-Diagram.png)
+
+---
+
 ## 📸 Live Preview
 
 ### 🔹 **🌐 Live Dashboard Example**  -->  *View scan statistics, charts, and history.*
