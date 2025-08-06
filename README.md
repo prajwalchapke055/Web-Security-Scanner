@@ -17,24 +17,23 @@ A powerful, full-stack web application designed to perform **comprehensive secur
 
 ## 📸 Live Preview
 
-### 🔹 **🌐 Live Dashboard Example**
-*View scan statistics, charts, and history.*
+### 🔹 **🌐 Live Dashboard Example**  -->  *View scan statistics, charts, and history.*
 
-<img width="1280" height="800" alt="3" src="https://github.com/user-attachments/assets/a944ef73-a13f-479b-9fa8-a05f2cdd96f7" />
+![Dashboard](WebScan/3.png)
 
+### 🔹 **Detailed Report View**  -->  *See vulnerability details and past scan comparisons.*
 
-### 🔹 **Detailed Report View**
-*See vulnerability details and past scan comparisons.*
-
-<img width="1919" height="966" alt="image" src="https://github.com/user-attachments/assets/4dffcacc-c9d2-4242-a7a9-ec6d982cde7f" />
-<img width="1919" height="966" alt="image" src="https://github.com/user-attachments/assets/96f2e2af-2e1b-41ce-924a-fe380b539a66" />
-<img width="1919" height="875" alt="image" src="https://github.com/user-attachments/assets/f827ec77-fa27-4127-ad72-db51e67285f2" />
+![Alt text](WebScan/1-1.png) 
+![Alt text](WebScan/2-1.png)
+![Alt text](WebScan/3-1.png)
+![Alt text](WebScan/4-1.png)
+![Alt text](WebScan/5-1.png)
 
 ---
 
-🚀 Key Features
+## 🚀 Key Features
 
-🔍 **Automated Reconnaissance**
+### 🔍 **Automated Reconnaissance**
 
   * WHOIS, DNS (A, MX, TXT, etc.)
   * SSL Certificate Details
@@ -42,46 +41,46 @@ A powerful, full-stack web application designed to perform **comprehensive secur
   * HTTP Headers & Cookies
   * Technology Stack Detection
 
-🛠️ **Vulnerability Testing**
+### 🛠️ **Vulnerability Testing**
 
   * SQL Injection
   * Cross-Site Scripting (XSS)
   * Open Redirect
   * Directory Traversal
 
-📦 **Vulnerable JS Library Detection**
+### 📦 **Vulnerable JS Library Detection**
 
   * Scans for outdated or insecure frontend libraries.
 
-📊 **Interactive Dashboard**
+### 📊 **Interactive Dashboard**
 
   * Security scores
   * Time-based scan trends
   * Filterable scan history
 
-🧾 **Comprehensive Reporting**
+### 🧾 **Comprehensive Reporting**
 
   * HTML-based report view
   * Active modules & results log
   * Real-time scan status
 
-📂 **Export Options**
+### 📂 **Export Options**
 
   * Download reports in **PDF**, **CSV**, and **JSON** formats.
 
-🔁 **Historical Tracking**
+### 🔁 **Historical Tracking**
 
   * Compare current and past scan results
   * Highlights newly discovered or resolved issues
 
-🧱 **Error-Resilient Architecture**
+### 🧱 **Error-Resilient Architecture**
 
   * Fallback mechanisms for Nmap/socket scanning
   * Graceful handling of timeouts or network errors
 
 ---
 
-🧰 Tech Stack
+## 🧰 Tech Stack
 
 | Layer         | Tools & Libraries                                                             |
 | ------------- | ----------------------------------------------------------------------------- |
@@ -93,9 +92,9 @@ A powerful, full-stack web application designed to perform **comprehensive secur
 
 ---
 
-⚙️ Getting Started
+## ⚙️ Getting Started
 
-🔑 Prerequisites
+### 🔑 Prerequisites
 
 Make sure the following are installed:
 
@@ -105,48 +104,59 @@ Make sure the following are installed:
 
 ---
 
-📦 Installation
+## 📦 Installation
+### 1️⃣ Clone the repository
 
-Clone the repository
-```bash
-git clone https://github.com/TaniRawat/Web-Security-Scanner.git
+```
+git clone https://github.com/prajwalchapke055/Web-Security-Scanner.git
 cd Web-Security-Scanner
 ```
 
-Create and activate a virtual environment
-```bash
-python -m venv venv
-.\venv\Scripts\activate   # On Windows
-# source venv/bin/activate   # On Linux/macOS
+### 2️⃣ Fix permissions (if needed on Linux/Kali)
+```
+sudo chown -R $USER:$USER ~/security-project/Web-Security-Scanner
+```
 
-# Install dependencies
+### 3️⃣ Create and activate a virtual environment
+```
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+# On Windows:
+.\venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
+```
+
+### 4️⃣ Upgrade pip and install dependencies
+```
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
----
+### ▶️ Running the Application
 
-▶️ Running the Application
-
-```bash
+```
 python app.py
 ```
 
-✅ Visit the app in your browser:
-**[http://127.0.0.1:5050](http://127.0.0.1:5050)**
+Open in your browser:
+http://127.0.0.1:5000
 
 ---
 
-🧪 How to Use
+## 🧪 How to Use
 
 1. Launch the app and enter a website URL (e.g., `https://example.com`).
 2. Click **"Scan Now"**.
-3. Wait for the scan to complete (dashboard will update).
+3. Wait for the scan to complete (Dashboard will update).
 4. Click **"View Report"** for detailed findings.
 5. Use export buttons to download reports as **PDF**, **CSV**, or **JSON**.
 
 ---
 
-🌐 Deployment
+## 🌐 Deployment
 
 Want to make your scanner public?
 
@@ -156,19 +166,10 @@ Want to make your scanner public?
 
 ---
 
-👨‍💻 Author & Credits
-
-**Tanishq Rawat**
-(GitHub: https://github.com/TaniRawat)
-Passionate about cybersecurity and full-stack development.
-
----
-
-📄 License
+## 📄 License
 
 This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
-⭐ Found this useful? Star the repo and share it!
-
+# ⭐ Found this useful? Star the repo and share it!
