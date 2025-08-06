@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Security Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {# Chart.js and date-fns are loaded in index.html for specific page control,
+       but if you use them elsewhere, keep them here or load as needed.
+       For this project, keeping them in index.html is fine as the dashboard is the primary user of charts/date-fns. #}
+    <style>
+        /* Keep global dark-mode styles here */
+        body { transition: background-color 0.3s, color 0.3s; }
+        body.dark-mode { background-color: #212529; color: #f8f9fa; }
+        body.dark-mode .navbar { background-color: #343a40 !important; border-bottom: 1px solid #495057; } /* Darker navbar for dark mode */
+        body.dark-mode .navbar-brand, body.dark-mode .form-check-label { color: #f8f9fa !important; }
+        body.dark-mode .card { background-color: #2c3034; border-color: #495057; }
+        body.dark-mode .list-group-item { background-color: #343a40; border-color: #495057; color: #f8f9fa; } /* Ensure list items text color is bright */
+        body.dark-mode .table { color: #f8f9fa; }
+        body.dark-mode .table thead th { background-color: #3a4046; border-color: #495057; color: #f8f9fa; } /* Darker table header */
+        body.dark-mode .table-hover tbody tr:hover { background-color: rgba(255, 255, 255, 0.075); } /* Dark mode table row hover */
+        body.dark-mode .form-control, 
+        body.dark-mode .form-select { 
+            background-color: #343a40; 
+            color: #f8f9fa; 
+            border-color: #495057; 
+        }
+        body.dark-mode .form-control::placeholder { /* Placeholder color in dark mode */
+            color: #ced4da;
+            opacity: 0.7;
+        }
+        body.dark-mode .btn-outline-secondary { /* Buttons in dark mode */
+            color: #ced4da;
+            border-color: #495057;
+        }
+        body.dark-mode .btn-outline-secondary:hover {
+            background-color: #495057;
+            color: #f8f9fa;
+        }
+        body.dark-mode .btn-outline-primary {
+            color: #007bff;
+            border-color: #007bff;
+        }
+        body.dark-mode .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+        body.dark-mode .alert-info { /* Alert in dark mode */
+            background-color: #003366 !important;
+            color: #a8d7ff !important;
+            border-color: #0056b3;
+        }
+        body.dark-mode .alert-info .alert-heading {
+            color: #66b3ff !important;
+        }
+        body.dark-mode .text-primary { color: #66b3ff !important; } /* Adjust text colors for dark mode */
+        body.dark-mode .text-muted { color: #a0a0a0 !important; }
+
+
+        /* Spinner Overlay - Adjusted to be truly global and respect dark mode */
+        .spinner-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+            display: none; /* Hidden by default */
+            justify-content: center; 
+            align-items: center; 
+            z-index: 1050; /* Above Bootstrap modals */
+            backdrop-filter: blur(5px); /* Modern blur effect */
+        }
+        body.dark-mode .spinner-overlay {
+            background-color: rgba(0, 0, 0, 0.7); /* Darker overlay in dark mode */
+        }
+    </style>
+    <script>
+        // Apply dark mode immediately to prevent flash of unstyled content
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark'); // Bootstrap 5.3+ dark mode
+            document.body.classList.add('dark-mode');
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-shield-lock-fill me-2"></i> Web Security Scanner {# Added a lock icon and bold text #}
+            </a>
+            <div class="form-check form-switch ms-auto">
+                <input class="form-check-input" type="checkbox" role="switch" id="darkModeToggle">
+                <label class="form-check-label" for="darkModeToggle"><i class="bi bi-moon-stars-fill"></i></label>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    {# Chart.js and date-fns moved to index.html for page-specific loading #}
+    <script>
+        const toggle = document.getElementById('darkModeToggle');
+        
+        // Set initial state of the toggle
+        if (localStorage.getItem('theme') === 'dark') {
+            toggle.checked = true;
+        }
+
+        toggle.addEventListener('change', () => { // Changed from 'click' to 'change' for better UX
+            if (toggle.checked) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark'); // Set Bootstrap theme
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', 'light'); // Set Bootstrap theme
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>

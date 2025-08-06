@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Web Security Scan Report</title>
+    <style>
+        /* --- Base & Page Setup --- */
+        @page {
+            size: a4 portrait;
+            margin: 1cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 8pt;
+            color: #333;
+            line-height: 1.3; /* Improved line height for readability */
+        }
+
+        /* --- Header & Footer --- */
+        .header {
+            text-align: right;
+            color: #999;
+            font-size: 9pt;
+            position: fixed;
+            top: -0.8cm;
+            right: 0;
+        }
+        .footer {
+            text-align: center;
+            font-size: 7.5pt;
+            color: #aaa;
+            position: fixed;
+            bottom: -0.8cm;
+            width: 100%;
+            left: 0;
+        }
+
+        /* --- Typography & Spacing --- */
+        .title {
+            color: #1a237e;
+            font-size: 18pt;
+            margin: 0;
+            font-weight: bold;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #ddd;
+            margin-top: 4px;
+            margin-bottom: 12px; /* Consistent space after title */
+        }
+        h2 {
+            font-size: 10.5pt;
+            color: #3f51b5;
+            margin-top: 14px;      /* Consistent space ABOVE sections */
+            margin-bottom: 6px;    /* Consistent space BELOW headings */
+            font-weight: bold;
+            border-bottom: 1.5px solid #3f51b5;
+            padding-bottom: 3px;
+        }
+        .url {
+            font-family: 'Courier New', monospace;
+            color: #0066cc;
+            font-size: 9pt;
+        }
+        .explanation {
+            font-size: 7.8pt; /* Slightly larger for clarity */
+            color: #555;
+        }
+        .recommendations ol, .key-findings-list {
+            padding-left: 20px;
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+        .recommendations li, .key-findings-list li {
+            margin-bottom: 4px; /* Space between list items */
+            padding-left: 2px;
+        }
+
+        /* --- Tables --- */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .info-table th, .info-table td {
+            padding: 3px 0; /* Balanced vertical padding */
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .info-table th {
+            font-weight: bold;
+            width: 24%;
+            color: #444;
+        }
+        .findings-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Fixes table layout to specified column widths */
+        }
+        .findings-table th, .findings-table td {
+            border: 1px solid #ddd;
+            padding: 5px 7px; /* Increased padding for breathing room */
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word; /* Ensures long words break to fit */
+            white-space: normal; /* Ensures text wraps normally */
+        }
+        .findings-table th {
+            background-color: #f5f5f5; /* Softer background color */
+            font-weight: bold;
+        }
+        /* Adjusted widths for findings-table columns for a stable 4-column layout */
+        .findings-table .check-col { width: 30%; } /* Check column now wider */
+        .findings-table .status-col { width: 10%; } /* Status column */
+        .findings-table .severity-col { width: 10%; } /* Severity column */
+        /* The "What This Means (Context)" column will take the remaining width (100 - 30 - 10 - 10 = 50%) */
+        
+        /* --- Two-Column Layout --- */
+        .two-col-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 25px;
+        }
+        .two-col-container > div {
+            width: 48%;
+        }
+        .two-col-container h2 {
+           margin-top: 14px; /* Align with other section headings */
+        }
+
+        /* --- Status & Severity Badges --- */
+        .risk-box {
+            padding: 5px;
+            border-radius: 4px;
+            color: white;
+            text-align: center;
+            font-size: 8.5pt;
+            font-weight: bold;
+        }
+        .risk-Critical { background-color: #7b1fa2; }
+        .risk-High { background-color: #c0392b; }
+        .risk-Medium { background-color: #f39c12; }
+        .risk-Low { background-color: #27ae60; }
+        
+        .status-Present, .status-Secure { color: #27ae60; font-weight: bold; }
+        .status-Missing, .status-Failed, .status-Insecure, .status-Found { color: #c0392b; font-weight: bold; } 
+        
+        .severity-Critical, .severity-High, .severity-Medium, .severity-Low, .severity-Unknown, .severity-Error { 
+            color: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 7.5pt;
+            text-align: center;
+            display: inline-block;
+            min-width: 50px;
+        }
+        .severity-Critical { background-color: #7b1fa2; }
+        .severity-High { background-color: #e74c3c; }
+        .severity-Medium { background-color: #f39c12; }
+        .severity-Low { background-color: #3498db; }
+        .severity-Unknown { background-color: #6c757d; } 
+        .severity-Error { background-color: #8c0000; } /* Darker red for explicit errors */
+
+        /* Active Tests List */
+        .active-tests-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .active-tests-list li {
+            margin-bottom: 3px;
+            padding: 2px 0;
+            border-bottom: 1px dotted #eee;
+        }
+        .active-tests-list li:last-child {
+            border-bottom: none;
+        }
+        .active-tests-status-Performed { color: #27ae60; font-weight: bold; }
+        .active-tests-status-Error { color: #c0392b; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">CRAW Security</div>
+    
+    <h1 class="title">Web Security Scan Report</h1>
+    <hr>
+    
+    <table class="info-table">
+        <tr><th>URL Scanned:</th><td><span class="url">{{ scan.url }}</span></td></tr>
+        <tr><th>Scan Date:</th><td>{{ scan.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</td></tr>
+        <tr><th>Security Score:</th><td><strong>{{ security_score }} / 100</strong></td></tr>
+        <tr><th>Overall Risk Level:</th><td><div class="risk-box risk-{{ risk_level }}">{{ risk_level }}</div></td></tr>
+    </table>
+
+    {# NEW: Scan Comparison / Vulnerability Changes Section for PDF #}
+    {% if delta_report.newly_found or delta_report.resolved or delta_report.still_present %}
+    <h2>Vulnerability Changes (vs. {{ datetime.fromisoformat(previous_scan_timestamp).strftime('%Y-%m-%d %H:%M:%S') }} UTC)</h2>
+    <table class="findings-table" style="margin-bottom: 15px;">
+        <thead>
+            <tr>
+                <th>Change Type</th>
+                <th>Vulnerability</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if delta_report.newly_found %}
+                {% for vuln in delta_report.newly_found %}
+                <tr>
+                    <td><strong>NEWLY FOUND</strong></td>
+                    <td>{{ vuln.summary }}</td>
+                    <td><span class="severity-{{ vuln.severity }}">{{ vuln.severity }}</span></td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+            {% if delta_report.resolved %}
+                {% for vuln in delta_report.resolved %}
+                <tr>
+                    <td><strong>RESOLVED</strong></td>
+                    <td>{{ vuln.summary }}</td>
+                    <td><span class="severity-{{ vuln.severity }}">{{ vuln.severity }}</span></td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+            {% if delta_report.still_present %}
+                {% for vuln in delta_report.still_present %}
+                <tr>
+                    <td><strong>STILL PRESENT</strong></td>
+                    <td>{{ vuln.summary }}</td>
+                    <td><span class="severity-{{ vuln.severity }}">{{ vuln.severity }}</span></td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+            {% if not delta_report.newly_found and not delta_report.resolved and not delta_report.still_present %}
+                <tr><td colspan="3">No significant changes in vulnerabilities compared to the previous scan.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if key_findings %}
+    <h2>Key Findings</h2>
+    <ul class="key-findings-list">
+        {% for finding in key_findings %}
+            <li><strong>{{ finding.check }}:</strong> <span class="explanation">{{ finding.explanation }}</span></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2>Detailed Security Checklist</h2>
+    <table class="findings-table">
+        <thead>
+            <tr>
+                <th class="check-col">Check</th>
+                <th class="status-col">Status</th>
+                <th class="severity-col">Severity</th>
+                <th>What This Means (Context)</th> {# Reverted to simpler header #}
+            </tr>
+        </thead>
+        <tbody>
+            {% for finding in findings %}
+            <tr>
+                <td>{{ finding.check }}</td>
+                <td class="status-{{ finding.status }}">{{ finding.status }}</td>
+                <td><span class="severity-{{ finding.severity }}">{{ finding.severity }}</span></td>
+                <td>{{ finding.explanation }}</td> {# Reverted to simple explanation #}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="two-col-container">
+        <div>
+            <h2>Additional Information</h2>
+            <table class="info-table">
+                <tr><th>Server Software:</th><td>{{ scan_data.get('http_headers', {}).get('Server', 'Not advertised') }}</td></tr>
+                <tr><th>SPF Record:</th><td>{{ scan_data.get('email_security', {}).get('spf', {}).get('record', 'Not found') }}</td></tr>
+                <tr><th>DMARC Record:</th><td>{{ scan_data.get('email_security', {}).get('dmarc', {}).get('record', 'Not found') }}</td></tr>
+                {# NEW: Tech Stack Fingerprinting #}
+                <tr>
+                    <th>Tech Stack:</th>
+                    <td>
+                        {% set technologies = scan_data.get('tech_stack', {}) %}
+                        {% if technologies %}
+                            {% for category, items in technologies.items() %}
+                                <strong>{{ category | capitalize }}:</strong> {{ items | join(', ') }}<br>
+                            {% endfor %}
+                        {% else %}
+                            Not identified
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+
+    {# NEW: Subdomains Section #}
+    {% set subdomains_data = scan_data.get('subdomains', {}) %}
+    {% if subdomains_data.get('subdomains') %}
+    <h2>Discovered Subdomains</h2>
+    <table class="info-table">
+        <tr>
+            <th>Subdomains:</th>
+            <td>
+                {{ subdomains_data.get('subdomains') | join(', ') }}
+            </td>
+        </tr>
+    </table>
+    {% elif subdomains_data.get('error') %}
+    <h2>Discovered Subdomains</h2>
+    <table class="info-table">
+        <tr>
+            <th>Subdomains:</th>
+            <td>Error: {{ subdomains_data.get('error') }}</td>
+        </tr>
+    </table>
+    {% else %}
+    <h2>Discovered Subdomains</h2>
+    <table class="info-table">
+        <tr>
+            <th>Subdomains:</th>
+            <td>No subdomains found.</td>
+        </tr>
+    </table>
+    {% endif %}
+
+
+    {# NEW: Port Scan Section #}
+    {% set port_scan_data = scan_data.get('port_scan', {}) %}
+    {% if port_scan_data.get('ports') and port_scan_data.get('ports') != "None found" %}
+    <h2>Open Ports</h2>
+    <table class="info-table">
+        <tr>
+            <th>Ports:</th>
+            <td>
+                {{ port_scan_data.get('ports') | join(', ') }}
+            </td>
+        </tr>
+    </table>
+    {% elif port_scan_data.get('error') %}
+    <h2>Open Ports</h2>
+    <table class="info-table">
+        <tr>
+            <th>Ports:</th>
+            <td>Error: {{ port_scan_data.get('error') }}</td>
+        </tr>
+    </table>
+    {% else %}
+    <h2>Open Ports</h2>
+    <table class="info-table">
+        <tr>
+            <th>Ports:</th>
+            <td>No common ports found open.</td>
+        </tr>
+    </table>
+    {% endif %}
+
+
+    {# NEW: WHOIS Information Section #}
+    {% set whois_info_data = scan_data.get('whois', {}) %}
+    {% if whois_info_data and not whois_info_data.get('error') %}
+    <h2>WHOIS Information</h2>
+    <table class="info-table">
+        <tr><th>Registrar:</th><td>{{ whois_info_data.get('registrar', 'N/A') }}</td></tr>
+        <tr><th>Creation Date:</th><td>{{ whois_info_data.get('creation_date', 'N/A') }}</td></tr>
+        <tr><th>Expiration Date:</th><td>{{ whois_info_data.get('expiration_date', 'N/A') }}</td></tr>
+        <tr><th>Name Servers:</th><td>{{ whois_info_data.get('name_servers', []) | join(', ') if whois_info_data.get('name_servers') else 'Not found' }}</td></tr>
+    </table>
+    {% elif whois_info_data.get('error') %}
+    <h2>WHOIS Information</h2>
+    <table class="info-table">
+        <tr><th>Error:</th><td>{{ whois_info_data.get('error') }}</td></tr>
+    </table>
+    {% else %}
+    <h2>WHOIS Information</h2>
+    <table class="info-table">
+        <tr><th>Status:</th><td>WHOIS data not available.</td></tr>
+    </table>
+    {% endif %}
+
+    {# NEW: DNS Records Section #}
+    {% set dns_records_data = scan_data.get('dns', {}) %}
+    {% if dns_records_data %}
+    <h2>DNS Records</h2>
+    <table class="info-table">
+        {% for type, records in dns_records_data.items() %}
+            <tr>
+                <th>{{ type }} Records:</th>
+                <td>{{ records | join(', ') if records else 'Not found' }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <h2>DNS Records</h2>
+    <table class="info-table">
+        <tr><th>Status:</th><td>DNS data not available.</td></tr>
+    </table>
+    {% endif %}
+
+    {# NEW: SSL/TLS Certificate Section #}
+    {% set ssl_data = scan_data.get('ssl', {}) %}
+    {% if ssl_data and not ssl_data.get('error') %}
+    <h2>SSL/TLS Certificate</h2>
+    <table class="info-table">
+        <tr><th>Issuer Org:</th><td>{{ ssl_data.get('issuer', {}).get('organizationName', 'N/A') }}</td></tr>
+        <tr><th>Subject CN:</th><td>{{ ssl_data.get('subject', {}).get('commonName', 'N/A') }}</td></tr> 
+        <tr><th>Expires On:</th><td>{{ ssl_data.get('expires', 'N/A') }}</td></tr> 
+        <tr><th>Expired:</th><td>{% if ssl_data.get('expired') %}<span class="badge bg-danger rounded-pill">Yes</span>{% else %}<span class="badge bg-success rounded-pill">No</span>{% endif %}</td></tr> 
+    </table>
+    {% elif ssl_data.get('error') %}
+    <h2>SSL/TLS Certificate</h2>
+    <table class="info-table">
+        <tr><th>Error:</th><td>{{ ssl_data.get('error') }}</td></tr>
+    </table>
+    {% else %}
+    <h2>SSL/TLS Certificate</h2>
+    <table class="info-table">
+        <tr><th>Status:</th><td>SSL/TLS data not available.</td></tr>
+    </table>
+    {% endif %}
+
+    {# NEW: Wayback Machine Section #}
+    {% set wayback_data = scan_data.get('wayback', {}) %}
+    {% if wayback_data.get('status') == 'Available' %}
+    <h2>Wayback Machine</h2>
+    <table class="info-table">
+        <tr><th>Status:</th><td>Available</td></tr>
+        <tr><th>URL:</th><td><a href="{{ wayback_data.get('url') }}" target="_blank">{{ wayback_data.get('url') }}</a></td></tr>
+        {# CORRECTED LINE for Wayback Timestamp #}
+        <tr><th>Timestamp:</th><td>{{ (datetime.strptime(wayback_data.get('timestamp'), '%Y%m%d%H%M%S')).strftime('%Y-%m-%d %H:%M:%S') }} UTC</td></tr>
+    </table>
+    {% elif wayback_data.get('error') %}
+    <h2>Wayback Machine</h2>
+    <table class="info-table">
+        <tr><th>Error:</th><td>{{ wayback_data.get('error') }}</td></tr>
+    </table>
+    {% else %}
+    <h2>Wayback Machine</h2>
+    <table class="info-table">
+        <tr><th>Status:</th><td>No snapshots found.</td></tr>
+    </table>
+    {% endif %}
+
+        </div>
+        <div>
+            {# CORRECTED CHECK #}
+            {% if scan_data.get('cookies') %}
+            <h2>Cookie Analysis</h2>
+            <table class="findings-table">
+                <thead><tr><th>Cookie Name</th><th>Flags</th></tr></thead>
+                <tbody>
+                    {# CORRECTED LOOP #}
+                    {% for cookie in scan_data.cookies %}
+                    <tr><td>{{ cookie.name }}</td><td>{{ cookie.flags | join(', ') if cookie.flags else 'None' }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            {# NEW: JavaScript Library Vulnerability Scan #}
+            {% set js_libraries_data = scan_data.get('js_libraries') %}
+            {% if js_libraries_data %}
+            <h2>JavaScript Libraries</h2>
+            <table class="findings-table">
+                <thead>
+                    <tr>
+                        <th>Library</th>
+                        <th>Version</th>
+                        <th>Severity</th>
+                        <th>Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set display_libs = js_libraries_data %} 
+                    {% if display_libs %}
+                        {% for lib in display_libs %}
+                        <tr>
+                            <td>{{ lib.library }}</td>
+                            <td>{{ lib.version }}</td>
+                            <td>
+                                <span class="severity-{{ lib.severity }}">{{ lib.severity }}</span>
+                            </td>
+                            <td>
+                                {% if lib.summary and lib.summary.startswith('http') %}
+                                    <a href="{{ lib.summary }}" target="_blank">{{ lib.summary }}</a>
+                                {% else %}
+                                    {{ lib.summary }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4">No JavaScript libraries identified.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            {% else %}
+            <h2>JavaScript Libraries</h2>
+            <table class="findings-table">
+                <tr><td colspan="4">No JavaScript library data available.</td></tr>
+            </table>
+            {% endif %}
+            
+            {# NEW: Active Tests Performed Section #}
+            {% if active_tests %}
+            <h2>Active Tests Performed</h2>
+            <ul class="active-tests-list">
+                {% for test in active_tests %}
+                    <li>
+                        {{ test.test }}: 
+                        <span class="active-tests-status-{{ test.status }}">{{ test.status }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <h2>Active Tests Performed</h2>
+            <p>No active tests were recorded for this scan.</p>
+            {% endif %}
+
+        </div>
+    </div>
+
+    {% if recommendations %}
+    <h2>Prioritized Recommendations</h2>
+    <div class="recommendations">
+        <ol>
+            {% for rec in recommendations %}
+            <li><span class="explanation">{{ rec }}</span></li>
+            {% endfor %}
+        </ol>
+    </div>
+    {% endif %}
+<br>
+<div class="footer">
+        This report was generated by CRAW Security Scanner. Information is for assessment purposes only.
+</div>
+
+</body>
+</html>

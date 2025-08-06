@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Report - {{ scan.url }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        .container {
+            max-width: 960px;
+        }
+        .card {
+            border-radius: 0.75rem;
+            border: none;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+        }
+        .card-header {
+            background-color: #f1f3f5;
+            border-bottom: 1px solid #e9ecef;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+        }
+        .card-header h1, .card-header h2 {
+            font-weight: 600;
+            color: #343a40;
+        }
+        .key {
+            font-weight: 600;
+            color: #495057;
+        }
+        .value {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            word-break: break-all;
+            color: #6c757d;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .download-buttons a {
+            margin-right: 10px;
+            border-radius: 2rem;
+            padding: 0.6rem 1.25rem;
+        }
+        .list-group-item.list-group-item-action:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .download-buttons a {
+                display: block;
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+        }
+        /* Dark Mode compatibility styles (consistent with layout.html) */
+        body.dark-mode { background-color: #212529; color: #f8f9fa; }
+        body.dark-mode .card { background-color: #2c3034; border-color: #495057; }
+        body.dark-mode .card-header { background-color: #343a40; border-color: #495057; color: #f8f9fa; }
+        body.dark-mode .card-header h1, body.dark-mode .card-header h2 { color: #f8f9fa; }
+        body.dark-mode .key { color: #ced4da; }
+        body.dark-mode .value { color: #b0b0b0; }
+        body.dark-mode .list-group-item { background-color: #343a40; border-color: #495057; color: #f8f9fa; }
+        body.dark-mode .list-group-item.list-group-item-action:hover { background-color: #495057; }
+        body.dark-mode .table { color: #f8f9fa; }
+        body.dark-mode .table thead th { background-color: #3a4046; border-color: #495057; color: #f8f9fa; }
+        body.dark-mode .table tbody tr { color: #e9ecef; }
+        body.dark-mode .table tbody tr td { border-top: 1px solid #495057; }
+        body.dark-mode .table-bordered { border-color: #495057 !important; }
+        body.dark-mode .table-bordered thead th, body.dark-mode .table-bordered tbody td { border-color: #495057 !important; }
+
+        /* Custom badge styles for vulnerability delta */
+        .badge.bg-new-found { background-color: #dc3545 !important; } /* Red for new */
+        .badge.bg-resolved { background-color: #28a745 !important; } /* Green for resolved */
+        .badge.bg-still-present { background-color: #007bff !important; } /* Blue for persistent */
+    </style>
+    {# Script for dark mode application on page load (from layout.html) #}
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+            document.body.classList.add('dark-mode');
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+        }
+    </script>
+</head>
+<body>
+
+<div class="container my-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h1 class="h3 mb-0 d-flex align-items-center">
+                <i class="bi bi-file-earmark-text-fill me-2"></i> Scan Report
+            </h1>
+        </div>
+        <div class="card-body">
+            <p class="mb-2"><span class="key">Scanned URL:</span> <span class="value">{{ scan.url }}</span></p>
+            <p class="mb-0"><span class="key">Scan Time:</span> <span class="value">{{ scan.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</span></p>
+        </div>
+    </div>
+
+    {# NEW: Scan Comparison / Vulnerability Changes Section #}
+    {% if previous_scan_timestamp %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                <i class="bi bi-arrow-repeat me-2"></i> Scan Comparison (vs. {{ datetime.fromisoformat(previous_scan_timestamp).strftime('%Y-%m-%d %H:%M:%S') }} UTC)
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card text-center h-100 bg-light">
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 text-danger mb-2"></i>
+                            <h6 class="card-title text-danger">Newly Found Issues</h6>
+                            <p class="card-text fs-4 fw-bold">{{ delta_report.newly_found|length }}</p>
+                            {% if delta_report.newly_found %}
+                                <ul class="list-group list-group-flush w-100 mt-2" style="font-size: 0.85rem;">
+                                    {% for vuln in delta_report.newly_found %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ vuln.summary | truncate(35, True) }}
+                                            <span class="badge bg-danger">{{ vuln.severity }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted small mt-2">No new issues detected.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100 bg-light">
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                            <i class="bi bi-check-circle-fill fs-3 text-success mb-2"></i>
+                            <h6 class="card-title text-success">Issues Resolved</h6>
+                            <p class="card-text fs-4 fw-bold">{{ delta_report.resolved|length }}</p>
+                            {% if delta_report.resolved %}
+                                <ul class="list-group list-group-flush w-100 mt-2" style="font-size: 0.85rem;">
+                                    {% for vuln in delta_report.resolved %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ vuln.summary | truncate(35, True) }}
+                                            <span class="badge bg-success">{{ vuln.severity }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted small mt-2">No issues resolved (or none were present).</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100 bg-light">
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                            <i class="bi bi-info-circle-fill fs-3 text-primary mb-2"></i>
+                            <h6 class="card-title text-primary">Still Present Issues</h6>
+                            <p class="card-text fs-4 fw-bold">{{ delta_report.still_present|length }}</p>
+                            {% if delta_report.still_present %}
+                                <ul class="list-group list-group-flush w-100 mt-2" style="font-size: 0.85rem;">
+                                    {% for vuln in delta_report.still_present %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ vuln.summary | truncate(35, True) }}
+                                            <span class="badge bg-primary">{{ vuln.severity }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted small mt-2">No persistent issues found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Active Tests Performed Section - Corrected Syntax #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                <i class="bi bi-list-check me-2"></i> Active Tests Performed
+            </h2>
+        </div>
+        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+            {% if active_tests %}
+                <p class="mb-3">Total Tests Executed: <span class="badge bg-primary rounded-pill">{{ active_tests|length }}</span></p>
+                <ul class="list-group">
+                    {% for test in active_tests %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                {% if test.test == 'SQL Injection' %}
+                                    <i class="bi bi-code-slash me-2 text-info"></i> {{ test.test }}
+                                {% elif test.test == 'XSS' %}
+                                    <i class="bi bi-braces me-2 text-warning"></i> {{ test.test }}
+                                {% elif test.test == 'Open Redirect' %}
+                                    <i class="bi bi-arrow-right-circle-fill me-2 text-muted"></i> {{ test.test }}
+                                {% elif test.test == 'Directory Traversal' %}
+                                    <i class="bi bi-folder-fill me-2 text-dark"></i> {{ test.test }}
+                                {% elif test.test == 'Vulnerable JS Libraries' %}
+                                    <i class="bi bi-filetype-js me-2 text-warning"></i> {{ test.test }}
+                                {% elif test.test == 'Subdomain Enumeration' %}
+                                    <i class="bi bi-globe me-2 text-primary"></i> {{ test.test }}
+                                {% elif test.test == 'SSL Certificate' %}
+                                    <i class="bi bi-shield-lock-fill me-2 text-success"></i> {{ test.test }}
+                                {% elif test.test == 'WHOIS Information' %}
+                                    <i class="bi bi-person-fill me-2 text-info"></i> {{ test.test }}
+                                {% elif test.test == 'Security Headers' %}
+                                    <i class="bi bi-patch-check-fill me-2 text-secondary"></i> {{ test.test }}
+                                {% elif test.test == 'DNS Records' %}
+                                    <i class="bi bi-hdd-fill me-2 text-dark"></i> {{ test.test }}
+                                {% elif test.test == 'Port Scan' %}
+                                    <i class="bi bi-front me-2 text-danger"></i> {{ test.test }}
+                                {% else %}
+                                    <i class="bi bi-flask-fill me-2 text-primary"></i> {{ test.test }}
+                                {% endif %}
+                            </span>
+                            <span class="badge {% if test.status == 'Performed' %}bg-success{% elif test.status == 'Error' %}bg-danger{% else %}bg-secondary{% endif %} rounded-pill py-2 px-3">
+                                {% if test.status == 'Performed' %}<i class="bi bi-check-circle-fill me-1"></i> Performed
+                                {% elif test.status == 'Error' %}<i class="bi bi-x-circle-fill me-1"></i> Error
+                                {% else %}{{ test.status }}{% endif %}
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No active tests were recorded for this scan.</p>
+            {% endif %}
+        </div>
+    </div>
+
+
+    {# JavaScript Libraries Section #}
+    {% set js_vuln_data = scan_data.get('js_libraries') %}
+    <div class="card shadow-sm mb-4 {% if js_vuln_data is iterable and js_vuln_data is not string and js_vuln_data|length > 0 and js_vuln_data[0].get('library') != 'N/A' %}border-danger{% endif %}">
+        <div class="card-header {% if js_vuln_data is iterable and js_vuln_data is not string and js_vuln_data|length > 0 and js_vuln_data[0].get('library') != 'N/A' %}bg-danger text-white{% else %}bg-success-subtle text-success{% endif %}">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                {% if js_vuln_data is iterable and js_vuln_data is not string and js_vuln_data|length > 0 and js_vuln_data[0].get('library') != 'N/A' %}
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Vulnerable JavaScript Libraries
+                {% else %}
+                    <i class="bi bi-check-circle-fill me-2"></i> JavaScript Libraries
+                {% endif %}
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Library</th>
+                            <th>Version</th>
+                            <th>Severity</th>
+                            <th>Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% if js_vuln_data is iterable and js_vuln_data is not string and js_vuln_data|length > 0 %}
+                        {% for lib in js_vuln_data %}
+                        <tr>
+                            <td>{{ lib.library }}</td>
+                            <td>{{ lib.version }}</td>
+                            <td>
+                                <span class="badge {% if lib.severity == 'High' %}bg-danger{% elif lib.severity == 'Medium' %}bg-warning text-dark{% elif lib.severity == 'Low' %}bg-info{% elif lib.severity == 'Error' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                    {{ lib.severity }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if lib.summary and lib.summary.startswith('http') %}
+                                    <a href="{{ lib.summary }}" target="_blank" rel="noopener noreferrer">Details <i class="bi bi-box-arrow-up-right small"></i></a>
+                                {% else %}
+                                    {{ lib.summary }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No JavaScript library data available or identified.</td>
+                        </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Discovered Subdomains #}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header">
+        <h2 class="h5 mb-0 d-flex align-items-center">
+            <i class="bi bi-globe me-2"></i> Discovered Subdomains
+        </h2>
+      </div>
+      <div class="card-body">
+        {% set subdomains_data = scan_data.get('subdomains', {}) %}
+        {% set subs = subdomains_data.get('subdomains') %}
+        {% set sub_error = subdomains_data.get('error') %}
+
+        {% if subs and subs|length > 0 %}
+          <ul class="list-group" style="max-height: 250px; overflow-y: auto;">
+            {% for sub in subs %}
+              <li class="list-group-item value">{{ sub }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          {% if sub_error %}
+            <p class="error">{{ sub_error }}</p>
+          {% else %}
+            <p class="text-muted">No subdomains found in passive sources.</p>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {# Open Ports #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                <i class="bi bi-hdd-network-fill me-2"></i> Open Ports
+            </h2>
+        </div>
+        <div class="card-body">
+            {% set port_scan_data = scan_data.get('port_scan') %}
+            {% if port_scan_data and not port_scan_data.get('error') %}
+                {% if port_scan_data.get('open_ports') and port_scan_data.open_ports != "None found" %}
+                    <p class="mb-3"><span class="key">Scan Method:</span> <span class="value">{{ port_scan_data.get('method', 'N/A') | capitalize }}</span></p>
+                    <ul class="list-group">
+                    {% for port in port_scan_data.open_ports %}
+                        <li class="list-group-item value">{{ port }}</li>
+                    {% endfor %}
+                    </ul>
+                    {% if port_scan_data.get('message') %}
+                        <p class="text-muted small mt-2">ℹ️ {{ port_scan_data.get('message') }}</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">No common ports found open.</p>
+                    {% if port_scan_data.get('message') %}
+                        <p class="text-muted small mt-2">ℹ️ {{ port_scan_data.get('message') }}</p>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <p class="error">{{ port_scan_data.get('error', "Port scan could not be completed.") if port_scan_data else "Port scan data not available." }}</p>
+                {% if port_scan_data and port_scan_data.get('message') %}
+                    <p class="text-muted small mt-2">ℹ️ {{ port_scan_data.get('message') }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {# WHOIS Information #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                <i class="bi bi-person-lines-fill me-2"></i> WHOIS Information
+            </h2>
+        </div>
+        <div class="card-body">
+            {% set whois_info_data = scan_data.get('whois', {}) %}
+            {% if whois_info_data and not whois_info_data.get('error') %}
+                <dl class="row mb-0">
+                    <dt class="col-sm-3 key">Registrar:</dt>
+                    <dd class="col-sm-9 value">{{ whois_info_data.get('registrar', 'N/A') }}</dd>
+                    <dt class="col-sm-3 key">Creation Date:</dt>
+                    <dd class="col-sm-9 value">{{ whois_info_data.get('creation_date', 'N/A') | default('N/A') }}</dd>
+                    <dt class="col-sm-3 key">Expiration Date:</dt>
+                    <dd class="col-sm-9 value">{{ whois_info_data.get('expiration_date', 'N/A') | default('N/A') }}</dd>
+                    <dt class="col-sm-3 key">Name Servers:</dt>
+                    <dd class="col-sm-9 value">
+                        <ul class="list-unstyled mb-0">
+                            {% set name_servers = whois_info_data.get('name_servers') %}
+                            {% if name_servers %}
+                                {% for ns in name_servers %}
+                                    <li>{{ ns }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>Not found</li>
+                            {% endif %}
+                        </ul>
+                    </dd>
+                </dl>
+            {% else %}
+                <p class="error">{{ whois_info_data.get('error', "WHOIS data not available.") }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {# DNS Records #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                <i class="bi bi-server me-2"></i> DNS Records
+            </h2>
+        </div>
+        <div class="card-body">
+            {% set dns_records_data = scan_data.get('dns', {}) %}
+            {% if dns_records_data %}
+                {% for type, records in dns_records_data.items() %}
+                    <h6 class="key mt-3">{{ type }} Records:</h6>
+                    <ul class="list-group mb-2">
+                        {% for record in records %}
+                            <li class="list-group-item value">{{ record }}</li>
+                        {% else %}
+                            <li class="list-group-item text-muted">Not found</li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            {% else %}
+                <p class="error">DNS data not available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {# SSL/TLS Certificate #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                <i class="bi bi-lock-fill me-2"></i> SSL/TLS Certificate
+            </h2>
+        </div>
+        <div class="card-body">
+            {% set ssl_data = scan_data.get('ssl', {}) %}
+            {% if ssl_data and not ssl_data.get('error') %}
+                <dl class="row mb-0">
+                    <dt class="col-sm-3 key">Issuer Org:</dt>
+                    <dd class="col-sm-9 value">{{ ssl_data.get('issuer', {}).get('organizationName', 'N/A') }}</dd>
+                    <dt class="col-sm-3 key">Subject CN:</dt>
+                    <dd class="col-sm-9 value">{{ ssl_data.get('subject', {}).get('commonName', 'N/A') }}</dd> 
+                    <dt class="col-sm-3 key">Expires On:</dt>
+                    <dd class="col-sm-9 value">{{ ssl_data.get('expires', 'N/A') }}</dd> 
+                    <dt class="col-sm-3 key">Expired:</dt>
+                    <dd class="col-sm-9 value">{% if ssl_data.get('expired') %}<span class="badge bg-danger rounded-pill">Yes</span>{% else %}<span class="badge bg-success rounded-pill">No</span>{% endif %}</td></tr> 
+                </dl>
+            {% else %}
+                <p class="error">{{ ssl_data.get('error', "SSL/TLS data not available.") }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    {# HTTP Security Headers Checklist #}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header">
+        <h2 class="h5 mb-0 d-flex align-items-center">
+            <i class="bi bi-shield-shaded me-2"></i> HTTP Security Headers Checklist
+        </h2>
+      </div>
+      <div class="card-body">
+        {% set http_headers_data = scan_data.get('http_headers', {}) %}
+        {% if security_headers %}
+            <ul class="list-group">
+                {% for header in security_headers %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="key">{{ header.name }}</span><br>
+                            <small class="value text-muted">{{ header.value }}</small>
+                        </div>
+                        {% if header.present %}
+                            <span class="badge bg-success rounded-pill fs-6 py-2 px-3">✅ Present</span>
+                        {% else %}
+                            <span class="badge bg-danger rounded-pill fs-6 py-2 px-3">❌ Missing</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% elif http_headers_data.get('error') %}
+            <p class="error">HTTP Headers check failed: {{ http_headers_data.get('error') }}</p>
+        {% else %}
+            <p class="text-muted">HTTP Headers data not available.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Recommended Fixes #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0 d-flex align-items-center">
+                <i class="bi bi-tools me-2"></i> Recommended Fixes
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if recommendations %}
+                <ul class="list-group">
+                    {% for fix in recommendations %}
+                        <li class="list-group-item">{{ fix }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No specific fixes recommended based on critical findings.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <div class="download-buttons mb-4">
+            <a href="{{ url_for('download_pdf', scan_id=scan.id) }}" class="btn btn-danger"><i class="bi bi-file-earmark-pdf-fill me-2"></i> Download PDF</a>
+            <a href="{{ url_for('download_csv', scan_id=scan.id) }}" class="btn btn-success"><i class="bi bi-file-earmark-spreadsheet-fill me-2"></i> Download CSV</a>
+            <a href="{{ url_for('download_json', scan_id=scan.id) }}" class="btn btn-primary"><i class="bi bi-file-earmark-code-fill me-2"></i> Download JSON</a>
+        </div>
+        <a href="/" class="btn btn-secondary rounded-pill px-4 py-2"><i class="bi bi-arrow-left-circle-fill me-2"></i> Back to Dashboard</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+{# Required for datetime objects in Jinja to be used with JS #}
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/cdn.min.js"></script> 
+
+</body>
+</html>

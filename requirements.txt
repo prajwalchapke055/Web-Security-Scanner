@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+python-whois
+dnspython
+builtwith
+requests
+python-nmap
+crtsh
+xhtml2pdf

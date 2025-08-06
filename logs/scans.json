@@ -1,0 +1,42 @@
+[
+  {
+    "url": "http://testphp.vulnweb.com/",
+    "timestamp": "2025-07-21 14:57:48",
+    "status": "Completed",
+    "vulnerabilities": [
+      "[+] Found open path: /admin",
+      "[!] SQL Injection Vulnerability Detected!",
+      "[!] Missing Security Headers: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy"
+    ]
+  },
+  {
+    "url": "http://testphp.vulnweb.com/",
+    "timestamp": "2025-07-21 15:00:07",
+    "status": "Completed",
+    "vulnerabilities": [
+      "[+] Found open path: /admin",
+      "[!] SQL Injection Vulnerability Detected!",
+      "[!] Missing Security Headers: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy"
+    ]
+  },
+  {
+    "url": "http://testphp.vulnweb.com/",
+    "timestamp": "2025-07-21 15:02:42",
+    "status": "Completed",
+    "vulnerabilities": [
+      "[+] Found open path: /admin",
+      "[!] SQL Injection Vulnerability Detected!",
+      "[!] Missing Security Headers: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy"
+    ]
+  },
+  {
+    "url": "http://testphp.vulnweb.com/",
+    "timestamp": "2025-07-21 15:06:02",
+    "status": "Completed",
+    "vulnerabilities": [
+      "[+] Found open path: /admin",
+      "[!] SQL Injection Vulnerability Detected!",
+      "[!] Missing Security Headers: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-XSS-Protection"
+    ]
+  }
+]
