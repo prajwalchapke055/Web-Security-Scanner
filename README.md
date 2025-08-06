@@ -7,7 +7,7 @@ A powerful, full-stack web application designed to perform **comprehensive secur
 
 ---
 
-✨ Overview
+## ✨ Overview
 
 **Web Security Scanner** is an automated vulnerability analysis tool focused on **web reconnaissance** and **active testing**. It helps developers and security enthusiasts understand the **security posture** of web applications by generating transparent and actionable reports.
 
@@ -15,14 +15,15 @@ A powerful, full-stack web application designed to perform **comprehensive secur
 
 ---
 
-📸 Live Preview
+## 📸 Live Preview
 
-🔹 **🌐 Live Dashboard Example**
+### 🔹 **🌐 Live Dashboard Example**
 *View scan statistics, charts, and history.*
 
-<img width="1919" height="1015" alt="Screenshot 2025-07-27 164903" src="https://github.com/user-attachments/assets/c4262b43-8285-4680-8e57-b08196b91154" />
+<img width="1280" height="800" alt="3" src="https://github.com/user-attachments/assets/a944ef73-a13f-479b-9fa8-a05f2cdd96f7" />
 
-🔹 **Detailed Report View**
+
+### 🔹 **Detailed Report View**
 *See vulnerability details and past scan comparisons.*
 
 <img width="1919" height="966" alt="image" src="https://github.com/user-attachments/assets/4dffcacc-c9d2-4242-a7a9-ec6d982cde7f" />
