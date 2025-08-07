@@ -17,7 +17,7 @@ A powerful, full-stack web application designed to perform **comprehensive secur
 
 ## 🏗️ Architecture Diagram
 
-![Architecture Diagram](WebScan/Architecture-Diagram.png)
+![Architecture Diagram](WebScan/Architecture-Diagram-2.png)
 
 ---
 
